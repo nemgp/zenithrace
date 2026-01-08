@@ -3,6 +3,8 @@ import { Stage, RouteChoice } from '@/types/game';
 import { getZoneIcon } from '@/data/stages';
 import { Button } from '@/components/ui/button';
 import { Particles } from './Particles';
+import { PlayerCar } from './PlayerCar';
+import { SideScenery } from './SideScenery';
 import { ArrowLeft, Zap, Coins, Star, AlertTriangle, Shield, Rocket, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -74,12 +76,12 @@ const zoneBackgrounds: Record<string, string> = {
 };
 
 const zoneObstacles: Record<string, string[]> = {
-  ocean: ['🪸', '🦑', '⚓'],
-  forest: ['🌲', '🪨', '🍄'],
-  volcanic: ['🔥', '🪨', '💀'],
-  mystical: ['✨', '👻', '💎'],
-  ice: ['🧊', '❄️', '🐧'],
-  desert: ['🌵', '🦂', '💀'],
+  ocean: ['🥩', '🍖', '🍗'],
+  forest: ['🥩', '🍖', '🥓'],
+  volcanic: ['🥩', '🍖', '🍗'],
+  mystical: ['🥩', '🍖', '🥓'],
+  ice: ['🥩', '🍖', '🍗'],
+  desert: ['🥩', '🍖', '🥓'],
 };
 
 const RACE_DURATION = 60; // seconds
@@ -96,6 +98,7 @@ export function RaceView({ stage, onComplete, onBack, onChoice }: RaceViewProps)
   const [score, setScore] = useState({ coins: 0, avoided: 0, hits: 0 });
   const [countdown, setCountdown] = useState(3);
   const [speed, setSpeed] = useState(5);
+  const [moveDirection, setMoveDirection] = useState<'left' | 'right' | 'none'>('none');
   const obstacleIdRef = useRef(0);
   const gameLoopRef = useRef<number>();
   const lastObstacleTime = useRef(0);
@@ -246,6 +249,9 @@ export function RaceView({ stage, onComplete, onBack, onChoice }: RaceViewProps)
 
   // Touch controls
   const handleLaneChange = (direction: 'left' | 'right') => {
+    setMoveDirection(direction);
+    setTimeout(() => setMoveDirection('none'), 300); // Reset sway
+
     if (direction === 'left') {
       setPlayerLane(l => Math.max(0, l - 1));
     } else {
@@ -265,7 +271,7 @@ export function RaceView({ stage, onComplete, onBack, onChoice }: RaceViewProps)
     const hitPenalty = Math.max(0, 1 - (score.hits * 0.1));
     const baseCoins = stage.rewards.coins + score.coins;
     const baseXp = stage.rewards.experience;
-    
+
     return {
       coins: Math.round(baseCoins * multiplier * hitPenalty),
       experience: Math.round(baseXp * multiplier * hitPenalty),
@@ -281,11 +287,8 @@ export function RaceView({ stage, onComplete, onBack, onChoice }: RaceViewProps)
   const zoneObs = zoneObstacles[stage.zone] || zoneObstacles.ocean;
 
   return (
-    <div className={cn(
-      "min-h-screen bg-gradient-to-b",
-      zoneBackgrounds[stage.zone],
-      "relative overflow-hidden"
-    )}>
+    <div className="min-h-screen relative overflow-hidden bg-black">
+
       <Particles count={15} />
 
       {/* Header - only show when not racing */}
@@ -344,7 +347,7 @@ export function RaceView({ stage, onComplete, onBack, onChoice }: RaceViewProps)
             <h2 className="text-2xl font-display font-bold text-center mb-6">
               Choose Your Route
             </h2>
-            
+
             {routeChoices.map((route) => {
               const RiskIcon = riskIcons[route.risk];
               return (
@@ -412,76 +415,111 @@ export function RaceView({ stage, onComplete, onBack, onChoice }: RaceViewProps)
               </div>
             </div>
 
-            {/* Game Area */}
-            <div 
-              className="relative mx-auto rounded-2xl overflow-hidden border-4 border-white/10"
-              style={{ 
-                width: '100%', 
-                maxWidth: '400px',
+            {/* Full-width Ground Plane */}
+            <div className="absolute inset-0 z-0">
+              {/* Sky */}
+              <div className="h-[40%] bg-gradient-to-b from-sky-900 to-sky-700" />
+              {/* Ground */}
+              <div className={cn(
+                "h-[60%] w-full bg-gradient-to-b",
+                // Dynamic ground color based on zone
+                stage.zone === 'ocean' ? 'from-blue-500 to-blue-900' :
+                  stage.zone === 'forest' ? 'from-green-700 to-green-950' :
+                    stage.zone === 'desert' ? 'from-amber-600 to-amber-900' :
+                      'from-slate-700 to-slate-900'
+              )} />
+            </div>
+
+            <SideScenery zone={stage.zone} speed={speed} />
+
+            {/* Game Area (Road) */}
+            <div
+              className="relative mx-auto z-10"
+              style={{
+                width: '100%',
+                maxWidth: '800px',
                 height: `${GAME_HEIGHT}px`,
-                background: 'linear-gradient(180deg, hsl(220 25% 12%) 0%, hsl(220 25% 8%) 100%)'
+                perspective: '1000px',
+                overflow: 'visible' // Allow scenery to spill if needed, though SideScenery is outside
               }}
             >
-              {/* Road lanes */}
-              <div className="absolute inset-0 flex">
-                {[0, 1, 2].map(lane => (
-                  <div 
-                    key={lane} 
-                    className="flex-1 border-x border-dashed border-white/10 relative overflow-hidden"
-                  >
-                    {/* Moving road lines */}
-                    <div 
-                      className="absolute inset-0"
+              {/* 3D Road Container */}
+              <div
+                className="absolute inset-0 w-full h-[150%] -top-[25%] origin-bottom"
+                style={{
+                  transform: 'rotateX(60deg)',
+                  background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)',
+                  boxShadow: '0 0 50px rgba(0,0,0,0.5) inset'
+                }}
+              >
+                {/* Lanes */}
+                <div className="absolute inset-0 flex px-32"> {/* Increased padding for grass/side area */}
+                  {[0, 1, 2].map(lane => (
+                    <div
+                      key={lane}
+                      className="flex-1 border-x-2 border-dashed border-white/20 relative overflow-hidden"
                       style={{
-                        background: 'repeating-linear-gradient(to bottom, transparent, transparent 40px, rgba(255,255,255,0.1) 40px, rgba(255,255,255,0.1) 80px)',
-                        animation: 'roadMove 0.5s linear infinite',
+                        borderColor: 'rgba(255,255,255,0.15)',
+                        background: lane === 1 ? 'rgba(255,255,255,0.02)' : 'transparent'
                       }}
-                    />
-                  </div>
-                ))}
+                    >
+                      {/* Moving road texture */}
+                      <div
+                        className="absolute inset-0"
+                        style={{
+                          background: 'repeating-linear-gradient(to bottom, transparent, transparent 60px, rgba(255,255,255,0.1) 60px, rgba(255,255,255,0.1) 120px)',
+                          backgroundSize: '100% 120px',
+                          animation: `roadMove ${0.6 - (speed * 0.04)}s linear infinite`, // Dynamic speed
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              {/* Obstacles */}
+              {/* Obstacles - Adjusted for 3D/Perspective feel visually */}
               {obstacles.map(obs => (
                 <div
                   key={obs.id}
-                  className="absolute text-3xl transition-all duration-75"
+                  className="absolute text-5xl transition-all duration-75 drop-shadow-lg"
                   style={{
                     left: `${(obs.lane * 33.33) + 16.66}%`,
                     top: `${obs.y}px`,
-                    transform: 'translateX(-50%)',
+                    transform: `translateX(-50%) scale(${0.5 + (obs.y / GAME_HEIGHT)})`, // Scale hack for fake 3D
+                    opacity: obs.y > GAME_HEIGHT - 50 ? 0 : 1, // Fade out
+                    zIndex: Math.floor(obs.y)
                   }}
                 >
                   {zoneObs[obs.lane % zoneObs.length]}
                 </div>
-              ))}
+              ))}\
 
-              {/* Collectibles */}
+              {/* Collectibles - Adjusted for 3D */}
               {collectibles.filter(c => !c.collected).map(col => (
                 <div
                   key={col.id}
-                  className="absolute text-2xl transition-all duration-75 animate-bounce-subtle"
+                  className="absolute text-4xl transition-all duration-75 animate-bounce-subtle drop-shadow-lg"
                   style={{
                     left: `${(col.lane * 33.33) + 16.66}%`,
                     top: `${col.y}px`,
-                    transform: 'translateX(-50%)',
+                    transform: `translateX(-50%) scale(${0.5 + (col.y / GAME_HEIGHT)})`,
+                    zIndex: Math.floor(col.y)
                   }}
                 >
-                  {col.type === 'coin' ? '🪙' : '⚡'}
+                  {col.type === 'coin' ? '🍒' : '🍌'}
                 </div>
               ))}
 
-              {/* Player */}
+              {/* Player - New Component */}
               <div
-                className="absolute text-5xl transition-all duration-150 ease-out"
+                className="absolute transition-all duration-150 ease-out z-[1000]"
                 style={{
                   left: `${(playerLane * 33.33) + 16.66}%`,
-                  bottom: '80px',
+                  bottom: '20px', // Closer to bottom
                   transform: 'translateX(-50%)',
-                  filter: 'drop-shadow(0 0 10px hsl(175, 80%, 50%))',
                 }}
               >
-                🏎️
+                <PlayerCar moveDirection={moveDirection} />
               </div>
             </div>
 
@@ -563,8 +601,8 @@ export function RaceView({ stage, onComplete, onBack, onChoice }: RaceViewProps)
                   key={i}
                   className={cn(
                     "w-8 h-8 animate-scale-in",
-                    i < (3 - Math.floor(score.hits / 3)) 
-                      ? "fill-accent text-accent" 
+                    i < (3 - Math.floor(score.hits / 3))
+                      ? "fill-accent text-accent"
                       : "text-muted-foreground/30"
                   )}
                   style={{ animationDelay: `${i * 0.2}s` }}

@@ -7,16 +7,17 @@ import { StageCard } from '@/components/StageCard';
 import { PlayerStats } from '@/components/PlayerStats';
 import { RaceView } from '@/components/RaceView';
 import { PaymentModal } from '@/components/PaymentModal';
+import { MyMap } from './MyMap';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, RotateCcw } from 'lucide-react';
 
-type View = 'home' | 'map' | 'stages' | 'race';
+type View = 'home' | 'map' | 'stages' | 'race' | 'mymap';
 
 const Index = () => {
   const [view, setView] = useState<View>('home');
   const [selectedStage, setSelectedStage] = useState<Stage | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  
+
   const {
     progress,
     stages,
@@ -85,8 +86,14 @@ const Index = () => {
             }
           }}
           onOpenMap={() => setView('map')}
+          onOpenMyMap={() => setView('mymap')}
           currentStage={progress.currentStage}
         />
+      )}
+
+      {/* My Map View */}
+      {view === 'mymap' && (
+        <MyMap onBack={() => setView('home')} />
       )}
 
       {/* Map View */}
@@ -102,9 +109,9 @@ const Index = () => {
                 <ArrowLeft className="w-5 h-5" />
                 <span>Home</span>
               </button>
-              
+
               <h1 className="text-2xl font-display font-bold">World Map</h1>
-              
+
               <Button
                 variant="ghost"
                 size="sm"
@@ -154,9 +161,9 @@ const Index = () => {
                 <ArrowLeft className="w-5 h-5" />
                 <span>Map</span>
               </button>
-              
+
               <h1 className="text-2xl font-display font-bold">All Stages</h1>
-              
+
               <Button
                 variant="ghost"
                 size="icon"

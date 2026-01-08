@@ -5,10 +5,11 @@ import { Play, Map, Footprints } from 'lucide-react';
 interface HeroSectionProps {
   onStart: () => void;
   onOpenMap: () => void;
+  onOpenMyMap: () => void;
   currentStage: number;
 }
 
-export function HeroSection({ onStart, onOpenMap, currentStage }: HeroSectionProps) {
+export function HeroSection({ onStart, onOpenMap, onOpenMyMap, currentStage }: HeroSectionProps) {
   return (
     <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
       <Particles count={25} />
@@ -62,6 +63,15 @@ export function HeroSection({ onStart, onOpenMap, currentStage }: HeroSectionPro
           >
             <Map className="w-5 h-5 mr-2" />
             World Map
+          </Button>
+
+          <Button
+            onClick={onOpenMyMap}
+            variant="outline"
+            className="px-8 py-6 text-lg border-2 border-accent/30 hover:bg-accent/10 hover:border-accent/50 text-accent"
+          >
+            <Footprints className="w-5 h-5 mr-2" />
+            My Map
           </Button>
         </div>
 
