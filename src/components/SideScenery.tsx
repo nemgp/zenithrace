@@ -93,9 +93,11 @@ export function SideScenery({ zone, speed }: SideSceneryProps) {
                 // X position: Center + (Side * Offset * Scale)
                 const x = centerX + (item.side * item.offset * scale);
 
-                // Y position: Horizon + (CameraHeight * Scale)
-                const horizonY = window.innerHeight * 0.4; // Match road horizon roughly
-                const y = horizonY + (CAMERA_HEIGHT * scale);
+                // Y position: Horizon + (CameraHeight * Scale) + Curvature
+                // Curvature: The further away (higher Z), the lower it drops (higher Y)
+                const horizonY = window.innerHeight * 0.4;
+                const curvature = Math.pow(item.z, 2) * 0.0002; // Adjust factor for planet size
+                const y = horizonY + (CAMERA_HEIGHT * scale) + curvature;
 
                 return (
                     <div
@@ -107,6 +109,8 @@ export function SideScenery({ zone, speed }: SideSceneryProps) {
                             fontSize: `${40 * scale}px`, // Scale font size directly
                             zIndex: Math.floor(DRAW_DISTANCE - item.z), // Render back to front
                             opacity: Math.min(1, (DRAW_DISTANCE - item.z) / 500), // Fade in
+                            // Rotate slightly based on x-offset to sell the "round world" effect
+                            transform: `translateX(-50%) translateY(-100%) rotate(${item.side * 10}deg)`
                         }}
                     >
                         {item.type}

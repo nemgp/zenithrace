@@ -287,7 +287,17 @@ export function RaceView({ stage, onComplete, onBack, onChoice }: RaceViewProps)
   const zoneObs = zoneObstacles[stage.zone] || zoneObstacles.ocean;
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-black">
+    <div className="min-h-screen relative overflow-hidden bg-[#020210]"> {/* Deep Space Black */}
+
+      {/* Stars Background */}
+      <div className="absolute inset-0 z-0 opacity-80"
+        style={{ background: 'radial-gradient(white 1px, transparent 1px) 0 0 / 50px 50px, radial-gradient(white 1px, transparent 1px) 25px 25px / 100px 100px' }}
+      />
+
+      {/* Giant Planet in Background */}
+      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-gradient-to-b from-purple-500/20 to-blue-500/5 blur-3xl z-0" />
+      <div className="absolute top-[-200px] left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full border border-white/5 opacity-20 z-0" />
+
 
       <Particles count={15} />
 
@@ -415,19 +425,22 @@ export function RaceView({ stage, onComplete, onBack, onChoice }: RaceViewProps)
               </div>
             </div>
 
-            {/* Full-width Ground Plane */}
+            {/* Full-width Ground Plane (Planet Surface) */}
             <div className="absolute inset-0 z-0">
-              {/* Sky */}
-              <div className="h-[40%] bg-gradient-to-b from-sky-900 to-sky-700" />
-              {/* Ground */}
+              {/* Sky/Space - Fade into horizon */}
+              <div className="h-[40%] bg-transparent" />
+              {/* Ground - Curved Planet Surface */}
               <div className={cn(
-                "h-[60%] w-full bg-gradient-to-b",
+                "absolute top-[40%] left-[-50%] right-[-50%] h-[1000px] rounded-[100%] bg-gradient-to-b",
+                "transform -translate-y-20 scale-x-150",
                 // Dynamic ground color based on zone
-                stage.zone === 'ocean' ? 'from-blue-500 to-blue-900' :
-                  stage.zone === 'forest' ? 'from-green-700 to-green-950' :
-                    stage.zone === 'desert' ? 'from-amber-600 to-amber-900' :
-                      'from-slate-700 to-slate-900'
-              )} />
+                stage.zone === 'ocean' ? 'from-blue-900 to-blue-950' :
+                  stage.zone === 'forest' ? 'from-green-900 to-green-950' :
+                    stage.zone === 'desert' ? 'from-amber-900 to-amber-950' :
+                      'from-slate-800 to-slate-950'
+              )}
+                style={{ boxShadow: '0 -20px 50px rgba(0,0,0,0.5) inset' }}
+              />
             </div>
 
             <SideScenery zone={stage.zone} speed={speed} />
@@ -439,16 +452,17 @@ export function RaceView({ stage, onComplete, onBack, onChoice }: RaceViewProps)
                 width: '100%',
                 maxWidth: '800px',
                 height: `${GAME_HEIGHT}px`,
-                perspective: '1000px',
-                overflow: 'visible' // Allow scenery to spill if needed, though SideScenery is outside
+                perspective: '600px', // Lower perspective for more dramatic curve
+                maskImage: 'linear-gradient(to bottom, transparent 0%, black 20%)', // Fade horizon
+                WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 20%)'
               }}
             >
               {/* 3D Road Container */}
               <div
                 className="absolute inset-0 w-full h-[150%] -top-[25%] origin-bottom"
                 style={{
-                  transform: 'rotateX(60deg)',
-                  background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)',
+                  transform: 'rotateX(50deg)', // Less rotation to see the "climb"
+                  background: 'linear-gradient(180deg, #020617 0%, #0f172a 100%)', // Darker road
                   boxShadow: '0 0 50px rgba(0,0,0,0.5) inset'
                 }}
               >
@@ -492,7 +506,7 @@ export function RaceView({ stage, onComplete, onBack, onChoice }: RaceViewProps)
                 >
                   {zoneObs[obs.lane % zoneObs.length]}
                 </div>
-              ))}\
+              ))}
 
               {/* Collectibles - Adjusted for 3D */}
               {collectibles.filter(c => !c.collected).map(col => (
