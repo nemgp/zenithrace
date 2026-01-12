@@ -68,10 +68,12 @@ export function HeroSection({ onStart, onOpenMap, onOpenMyMap, currentStage }: H
           <Button
             onClick={onOpenMyMap}
             variant="outline"
-            className="px-8 py-6 text-lg border-2 border-accent/30 hover:bg-accent/10 hover:border-accent/50 text-accent"
+            className="px-8 py-6 text-lg border-2 border-accent/30 hover:bg-accent/10 hover:border-accent/50 text-accent relative overflow-hidden group"
           >
-            <Footprints className="w-5 h-5 mr-2" />
-            My Map
+            <div className="absolute inset-0 bg-gradient-to-r from-accent/0 via-accent/20 to-accent/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+            <Footprints className="w-5 h-5 mr-2 relative z-10" />
+            <span className="relative z-10">Explorer Mode</span>
+            <span className="ml-2 text-xs bg-accent/20 px-2 py-0.5 rounded-full relative z-10">3D</span>
           </Button>
         </div>
 
