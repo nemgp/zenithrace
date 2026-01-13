@@ -641,6 +641,18 @@
   }
 }
 
+@keyframes collectibleFloat {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
 /* Support pour prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
 

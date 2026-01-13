@@ -579,12 +579,15 @@ export function RaceView({ stage, onComplete, onBack, onChoice }: RaceViewProps)
               {collectibles.filter(c => !c.collected).map(col => (
                 <div
                   key={col.id}
-                  className="absolute text-4xl transition-all duration-75 animate-bounce-subtle drop-shadow-lg"
+                  className="absolute text-5xl transition-all duration-100 drop-shadow-2xl"
                   style={{
                     left: `${(col.lane * 33.33) + 16.66}%`,
                     top: `${col.y}px`,
-                    transform: `translateX(-50%) scale(${0.5 + (col.y / GAME_HEIGHT)})`,
-                    zIndex: Math.floor(col.y)
+                    transform: `translateX(-50%) scale(${0.8 + (col.y / GAME_HEIGHT) * 0.5})`,
+                    opacity: col.y < 50 ? col.y / 50 : 1,
+                    zIndex: Math.floor(col.y),
+                    filter: `brightness(${1 + (col.y / GAME_HEIGHT) * 0.3}) drop-shadow(0 0 10px rgba(255, 215, 0, 0.6))`,
+                    animation: 'collectibleFloat 1.5s ease-in-out infinite'
                   }}
                 >
                   {col.type === 'coin' ? '🍒' : '🍌'}
@@ -642,7 +645,7 @@ export function RaceView({ stage, onComplete, onBack, onChoice }: RaceViewProps)
             {/* Stats */}
             <div className="grid grid-cols-3 gap-4 mb-6">
               <div className="glass-card p-3 rounded-xl">
-                <div className="text-2xl mb-1">🪙</div>
+                <div className="text-2xl mb-1">🍒</div>
                 <div className="text-lg font-bold text-accent">{score.coins}</div>
                 <div className="text-xs text-muted-foreground">Collected</div>
               </div>
