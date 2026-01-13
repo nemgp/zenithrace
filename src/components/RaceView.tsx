@@ -98,7 +98,7 @@ export function RaceView({ stage, onComplete, onBack, onChoice }: RaceViewProps)
   const [score, setScore] = useState({ coins: 0, avoided: 0, hits: 0 });
   const [countdown, setCountdown] = useState(3);
   const [speed, setSpeed] = useState(5);
-  const [moveDirection, setMoveDirection] = useState<'left' | 'right' | 'none'>('none');
+  const [moveDirection, setMoveDirection] = useState<'left' | 'right' | null>(null);
   const obstacleIdRef = useRef(0);
   const gameLoopRef = useRef<number>();
   const lastObstacleTime = useRef(0);
@@ -250,7 +250,7 @@ export function RaceView({ stage, onComplete, onBack, onChoice }: RaceViewProps)
   // Touch controls
   const handleLaneChange = (direction: 'left' | 'right') => {
     setMoveDirection(direction);
-    setTimeout(() => setMoveDirection('none'), 300); // Reset sway
+    setTimeout(() => setMoveDirection(null), 300); // Reset sway
 
     if (direction === 'left') {
       setPlayerLane(l => Math.max(0, l - 1));
@@ -452,41 +452,108 @@ export function RaceView({ stage, onComplete, onBack, onChoice }: RaceViewProps)
                 width: '100%',
                 maxWidth: '800px',
                 height: `${GAME_HEIGHT}px`,
-                perspective: '600px', // Lower perspective for more dramatic curve
-                maskImage: 'linear-gradient(to bottom, transparent 0%, black 20%)', // Fade horizon
-                WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 20%)'
+                perspective: '800px',
+                maskImage: 'linear-gradient(to bottom, transparent 0%, black 15%)',
+                WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 15%)'
               }}
             >
               {/* 3D Road Container */}
               <div
                 className="absolute inset-0 w-full h-[150%] -top-[25%] origin-bottom"
                 style={{
-                  transform: 'rotateX(50deg)', // Less rotation to see the "climb"
-                  background: 'linear-gradient(180deg, #020617 0%, #0f172a 100%)', // Darker road
-                  boxShadow: '0 0 50px rgba(0,0,0,0.5) inset'
+                  transform: 'rotateX(55deg)',
+                  transformStyle: 'preserve-3d'
                 }}
               >
-                {/* Lanes */}
-                <div className="absolute inset-0 flex px-32"> {/* Increased padding for grass/side area */}
+                {/* Route principale avec effet néon */}
+                <div className="absolute inset-0" style={{
+                  background: 'linear-gradient(180deg, #0a0f1e 0%, #1a1f2e 50%, #0a0f1e 100%)',
+                  boxShadow: `
+                    0 0 100px rgba(6, 182, 212, 0.3) inset,
+                    0 0 50px rgba(0,0,0,0.8) inset,
+                    0 10px 50px rgba(0,0,0,0.5)
+                  `
+                }}>
+                  {/* Grille futuriste de fond */}
+                  <div className="absolute inset-0 opacity-20" style={{
+                    backgroundImage: `
+                      repeating-linear-gradient(0deg, transparent, transparent 49px, rgba(6, 182, 212, 0.3) 49px, rgba(6, 182, 212, 0.3) 50px),
+                      repeating-linear-gradient(90deg, transparent, transparent 49px, rgba(6, 182, 212, 0.3) 49px, rgba(6, 182, 212, 0.3) 50px)
+                    `,
+                    backgroundSize: '50px 50px',
+                    animation: 'gridMove 2s linear infinite'
+                  }} />
+
+                  {/* Bordures néon latérales */}
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-transparent via-cyan-400 to-transparent" style={{
+                    boxShadow: '0 0 20px rgba(6, 182, 212, 0.8), 0 0 40px rgba(6, 182, 212, 0.4)',
+                    animation: 'neonPulse 2s ease-in-out infinite'
+                  }} />
+                  <div className="absolute right-0 top-0 bottom-0 w-1 bg-gradient-to-b from-transparent via-cyan-400 to-transparent" style={{
+                    boxShadow: '0 0 20px rgba(6, 182, 212, 0.8), 0 0 40px rgba(6, 182, 212, 0.4)',
+                    animation: 'neonPulse 2s ease-in-out infinite 1s'
+                  }} />
+                </div>
+
+                {/* Lanes avec lignes néon */}
+                <div className="absolute inset-0 flex px-32">
                   {[0, 1, 2].map(lane => (
                     <div
                       key={lane}
-                      className="flex-1 border-x-2 border-dashed border-white/20 relative overflow-hidden"
+                      className="flex-1 relative overflow-hidden"
                       style={{
-                        borderColor: 'rgba(255,255,255,0.15)',
-                        background: lane === 1 ? 'rgba(255,255,255,0.02)' : 'transparent'
+                        borderLeft: lane === 0 ? 'none' : '2px solid rgba(34, 211, 238, 0.4)',
+                        borderRight: lane === 2 ? 'none' : '2px solid rgba(34, 211, 238, 0.4)',
+                        background: lane === 1 ? 'rgba(6, 182, 212, 0.05)' : 'transparent',
+                        boxShadow: lane === 1 ? '0 0 30px rgba(6, 182, 212, 0.1) inset' : 'none'
                       }}
                     >
-                      {/* Moving road texture */}
+                      {/* Lignes de marquage animées */}
                       <div
                         className="absolute inset-0"
                         style={{
-                          background: 'repeating-linear-gradient(to bottom, transparent, transparent 60px, rgba(255,255,255,0.1) 60px, rgba(255,255,255,0.1) 120px)',
-                          backgroundSize: '100% 120px',
-                          animation: `roadMove ${0.6 - (speed * 0.04)}s linear infinite`, // Dynamic speed
+                          background: 'repeating-linear-gradient(to bottom, transparent, transparent 40px, rgba(34, 211, 238, 0.6) 40px, rgba(34, 211, 238, 0.6) 60px, transparent 60px, transparent 100px)',
+                          backgroundSize: '100% 100px',
+                          animation: `roadMove ${0.8 - (speed * 0.05)}s linear infinite`,
+                          filter: 'blur(0.5px)',
+                          opacity: 0.8
                         }}
                       />
+
+                      {/* Particules de lumière sur la route */}
+                      {lane === 1 && (
+                        <div className="absolute inset-0 overflow-hidden">
+                          {[...Array(5)].map((_, i) => (
+                            <div
+                              key={i}
+                              className="absolute w-2 h-2 bg-cyan-400 rounded-full blur-sm"
+                              style={{
+                                left: '50%',
+                                top: `${i * 20}%`,
+                                animation: `particleFloat ${2 + i * 0.5}s linear infinite`,
+                                animationDelay: `${i * 0.4}s`,
+                                boxShadow: '0 0 10px rgba(6, 182, 212, 0.8)'
+                              }}
+                            />
+                          ))}
+                        </div>
+                      )}
                     </div>
+                  ))}
+                </div>
+
+                {/* Effet de profondeur - lignes de perspective */}
+                <div className="absolute inset-0 pointer-events-none">
+                  {[...Array(10)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent"
+                      style={{
+                        top: `${i * 10}%`,
+                        opacity: 0.3 - (i * 0.02),
+                        boxShadow: '0 0 5px rgba(6, 182, 212, 0.3)'
+                      }}
+                    />
                   ))}
                 </div>
               </div>
